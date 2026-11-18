@@ -20,10 +20,12 @@ void main() {
       expect(() => ScopedKey.format('', 'key'), throwsArgumentError);
     });
 
-    test('TenantScope enforces active tenant state and change stream', () async {
+    test('TenantScope enforces active tenant state and change stream',
+        () async {
       final scope = TenantScope();
       expect(scope.hasActiveTenant, isFalse);
-      expect(() => scope.activeTenantId, throwsA(isA<NoActiveTenantException>()));
+      expect(
+          () => scope.activeTenantId, throwsA(isA<NoActiveTenantException>()));
 
       final tenantEmissions = <String?>[];
       final sub = scope.onTenantChanged.listen(tenantEmissions.add);
@@ -133,7 +135,8 @@ void main() {
       expect(t1Items['item_b'], 'Data B1');
     });
 
-    test('watchAll emits scoped changes and updates on tenant switch', () async {
+    test('watchAll emits scoped changes and updates on tenant switch',
+        () async {
       scope.setTenant('tenant_1');
       final emissions = <Map<String, String>>[];
       final sub = scopedStore.watchAll().listen(emissions.add);

@@ -297,8 +297,7 @@ class SyncRepository<T extends SyncEntity, ID> {
     scope.ensureActiveTenant(remoteEntity.tenantId);
 
     final local = await store.get(remoteEntity.id);
-    final effectiveRemoteTimestamp =
-        remoteTimestamp ?? remoteEntity.updatedAt;
+    final effectiveRemoteTimestamp = remoteTimestamp ?? remoteEntity.updatedAt;
 
     if (local == null) {
       if (!remoteEntity.isDeleted) {

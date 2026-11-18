@@ -162,7 +162,8 @@ class SyncEngine {
     ));
 
     // Connectivity listener
-    _connectivitySub = connectivity.onConnectivityChanged.listen((isOnline) async {
+    _connectivitySub =
+        connectivity.onConnectivityChanged.listen((isOnline) async {
       _updateState(_currentState.copyWith(
         isOnline: isOnline,
         status: isOnline ? SyncStatus.synced : SyncStatus.offline,
@@ -202,8 +203,7 @@ class SyncEngine {
     // Background periodic sync timer
     if (options.periodicSyncInterval != null &&
         options.periodicSyncInterval! > Duration.zero) {
-      _periodicTimer =
-          Timer.periodic(options.periodicSyncInterval!, (_) async {
+      _periodicTimer = Timer.periodic(options.periodicSyncInterval!, (_) async {
         if (_currentState.isOnline && !_isPaused && !_isSyncing) {
           await sync();
         }
@@ -294,8 +294,7 @@ class SyncEngine {
       }
 
       // 2. Refresh pending count
-      final remainingPending =
-          await queueManager.getPendingCount(tenantId);
+      final remainingPending = await queueManager.getPendingCount(tenantId);
 
       _updateState(_currentState.copyWith(
         status: SyncStatus.synced,

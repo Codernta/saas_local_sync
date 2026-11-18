@@ -4,10 +4,10 @@
   <img src="https://raw.githubusercontent.com/Codernta/saas_local_sync/main/doc/poster.jpg" alt="saas_local_sync — Offline-First Multi-Tenant Sync Engine for Flutter" width="100%" />
 </p>
 
-[![pub package](https://img.shields.io/badge/pub-v1.0.1-blue.svg)](https://pub.dev/packages/saas_local_sync)
+[![pub package](https://img.shields.io/badge/pub-v1.0.2-blue.svg)](https://pub.dev/packages/saas_local_sync)
 [![Flutter](https://img.shields.io/badge/flutter-3.0%2B-02569B.svg?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/dart-3.0%2B-0175C2.svg?logo=dart)](https://dart.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A complete, production-ready, pure-Dart, offline-first multi-tenant synchronization engine for Flutter applications.
 
@@ -97,7 +97,7 @@ Add `saas_local_sync` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  saas_local_sync: ^1.0.1
+  saas_local_sync: ^1.0.2
 ```
 
 Then run:
@@ -412,4 +412,4 @@ Features demonstrated live:
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License — see the [LICENSE](LICENSE) file for details.

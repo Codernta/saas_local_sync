@@ -234,7 +234,9 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
           final mergedTitle = local.title == remote.title
               ? local.title
               : '${local.title} [Merged: ${remote.title}]';
-          final mergedDesc = '${local.description}\n[Cloud Sync]: ${remote.description}'.trim();
+          final mergedDesc =
+              '${local.description}\n[Cloud Sync]: ${remote.description}'
+                  .trim();
 
           final mergedTask = local.copyWith(
             title: mergedTitle,
@@ -312,7 +314,10 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
                   'title': '${task.title} (Cloud Web Edit)',
                   'description': 'Urgent note added by colleague via Web App.',
                   'isCompleted': true,
-                  'updatedAt': DateTime.now().toUtc().add(const Duration(minutes: 5)).toIso8601String(),
+                  'updatedAt': DateTime.now()
+                      .toUtc()
+                      .add(const Duration(minutes: 5))
+                      .toIso8601String(),
                   'isDeleted': false,
                   'syncState': 'synced',
                 },
@@ -321,7 +326,8 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('⚡ Remote conflict armed! Edit this task or sync to trigger resolution.'),
+                  content: Text(
+                      '⚡ Remote conflict armed! Edit this task or sync to trigger resolution.'),
                   backgroundColor: Colors.blueGrey,
                 ),
               );
@@ -465,14 +471,17 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
+                            Icon(Icons.inbox_outlined,
+                                size: 64, color: Colors.grey.shade400),
                             const SizedBox(height: 12),
                             Text(
                               'No tasks in ${_tenants[_tenantScope.activeTenantId] ?? _tenantScope.activeTenantId}',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 16),
                             ),
                             const SizedBox(height: 4),
-                            const Text('Zero data leakage verified across tenants!'),
+                            const Text(
+                                'Zero data leakage verified across tenants!'),
                           ],
                         ),
                       );
@@ -521,7 +530,8 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
             items: _tenants.entries.map((e) {
               return DropdownMenuItem(
                 value: e.key,
-                child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w600)),
+                child: Text(e.value,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
               );
             }).toList(),
             onChanged: (newTenant) {
@@ -591,7 +601,9 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
             )
           else
             Text(
-              state.isOnline ? 'All changes synced with cloud' : 'Operating fully offline',
+              state.isOnline
+                  ? 'All changes synced with cloud'
+                  : 'Operating fully offline',
               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
         ],
@@ -632,14 +644,17 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
                         ),
                       ),
                       if (task.description.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           task.description,
-                          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                          style: TextStyle(
+                              fontSize: 13, color: Colors.grey.shade700),
                         ),
                       ],
                     ],
@@ -653,13 +668,16 @@ class _SyncDashboardScreenState extends State<SyncDashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton.icon(
-                  icon: const Icon(Icons.flash_on, size: 16, color: Colors.amber),
-                  label: const Text('Test Conflict', style: TextStyle(fontSize: 12)),
+                  icon:
+                      const Icon(Icons.flash_on, size: 16, color: Colors.amber),
+                  label: const Text('Test Conflict',
+                      style: TextStyle(fontSize: 12)),
                   onPressed: () => _showConflictTriggerDialog(task),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                  icon: const Icon(Icons.delete_outline,
+                      size: 18, color: Colors.red),
                   onPressed: () async {
                     await _taskRepository.delete(task.id);
                   },

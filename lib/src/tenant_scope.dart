@@ -5,7 +5,8 @@ import 'dart:io';
 /// Exception thrown when an operation requires an active tenant but none is set.
 class NoActiveTenantException implements Exception {
   final String message;
-  const NoActiveTenantException([this.message = 'No active tenant is currently set in TenantScope.']);
+  const NoActiveTenantException(
+      [this.message = 'No active tenant is currently set in TenantScope.']);
 
   @override
   String toString() => 'NoActiveTenantException: $message';

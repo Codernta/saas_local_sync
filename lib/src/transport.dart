@@ -199,7 +199,8 @@ class MockRemoteTransport implements RemoteTransport {
       case SyncOperationType.custom:
         if (operation.payload != null) {
           final serverData = Map<String, dynamic>.from(operation.payload!);
-          serverData['serverSyncedAt'] = DateTime.now().toUtc().toIso8601String();
+          serverData['serverSyncedAt'] =
+              DateTime.now().toUtc().toIso8601String();
           tenantStore[entityId] = serverData;
           return TransportResult.success(
             data: serverData,
@@ -225,7 +226,8 @@ class MockRemoteTransport implements RemoteTransport {
     }
 
     if (simulateNetworkDown) {
-      throw Exception('Network connection failed: Unable to pull remote updates.');
+      throw Exception(
+          'Network connection failed: Unable to pull remote updates.');
     }
 
     final tenantStore = _remoteDatabase[tenantId] ?? {};

@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'sync_client.dart';
 import 'sync_repository.dart';
 
@@ -44,98 +45,72 @@ class SyncStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     Color backgroundColor;
     Color textColor;
-    IconData icon;
+    String symbol;
     String label;
 
     switch (status) {
       case SyncStatus.synced:
-        backgroundColor = Colors.green.shade50;
-        textColor = Colors.green.shade800;
-        icon = Icons.check_circle_outline;
+        backgroundColor = const Color(0xFFE8F5E9);
+        textColor = const Color(0xFF2E7D32);
+        symbol = '✓';
         label = 'Synced';
         break;
       case SyncStatus.syncing:
-        backgroundColor = Colors.blue.shade50;
-        textColor = Colors.blue.shade800;
-        icon = Icons.sync;
+        backgroundColor = const Color(0xFFE3F2FD);
+        textColor = const Color(0xFF1565C0);
+        symbol = '⟳';
         label = pendingCount > 0 ? 'Syncing ($pendingCount)' : 'Syncing...';
         break;
       case SyncStatus.offline:
-        backgroundColor = Colors.orange.shade50;
-        textColor = Colors.orange.shade900;
-        icon = Icons.cloud_off_outlined;
-        label = pendingCount > 0 ? 'Offline ($pendingCount pending)' : 'Offline';
+        backgroundColor = const Color(0xFFFFF3E0);
+        textColor = const Color(0xFFE65100);
+        symbol = '☁';
+        label =
+            pendingCount > 0 ? 'Offline ($pendingCount pending)' : 'Offline';
         break;
       case SyncStatus.error:
-        backgroundColor = Colors.red.shade50;
-        textColor = Colors.red.shade800;
-        icon = Icons.error_outline;
+        backgroundColor = const Color(0xFFFFEBEE);
+        textColor = const Color(0xFFC62828);
+        symbol = '!';
         label = 'Sync Error';
         break;
     }
 
-    if (compact) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (status == SyncStatus.syncing)
-              SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                ),
-              )
-            else
-              Icon(icon, size: 14, color: textColor),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final padding = compact
+        ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+        : const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
+    final borderRadius = BorderRadius.circular(compact ? 12 : 16);
+    final fontSize = compact ? 11.0 : 12.0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: borderRadius,
         border: Border.all(color: textColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (status == SyncStatus.syncing)
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(textColor),
-              ),
+            _SpinningIndicator(
+              color: textColor,
+              size: compact ? 12.0 : 14.0,
             )
           else
-            Icon(icon, size: 16, color: textColor),
+            Text(
+              symbol,
+              style: TextStyle(
+                fontSize: compact ? 12 : 14,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
           const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: fontSize,
               fontWeight: FontWeight.w600,
               color: textColor,
             ),
@@ -159,38 +134,38 @@ class EntitySyncChip extends StatelessWidget {
   Widget build(BuildContext context) {
     Color bg;
     Color fg;
-    IconData icon;
+    String symbol;
     String text;
 
     switch (syncState) {
       case SyncState.synced:
-        bg = Colors.green.shade50;
-        fg = Colors.green.shade700;
-        icon = Icons.cloud_done;
+        bg = const Color(0xFFE8F5E9);
+        fg = const Color(0xFF2E7D32);
+        symbol = '✓';
         text = 'Synced';
         break;
       case SyncState.pendingCreation:
-        bg = Colors.amber.shade50;
-        fg = Colors.amber.shade900;
-        icon = Icons.cloud_upload_outlined;
+        bg = const Color(0xFFFFF8E1);
+        fg = const Color(0xFFFF8F00);
+        symbol = '↑';
         text = 'Offline (New)';
         break;
       case SyncState.pendingUpdate:
-        bg = Colors.amber.shade50;
-        fg = Colors.amber.shade900;
-        icon = Icons.pending_outlined;
+        bg = const Color(0xFFFFF8E1);
+        fg = const Color(0xFFFF8F00);
+        symbol = '✎';
         text = 'Offline (Edited)';
         break;
       case SyncState.pendingDeletion:
-        bg = Colors.red.shade50;
-        fg = Colors.red.shade700;
-        icon = Icons.delete_outline;
+        bg = const Color(0xFFFFEBEE);
+        fg = const Color(0xFFC62828);
+        symbol = '✕';
         text = 'Deleting';
         break;
       case SyncState.conflictResolved:
-        bg = Colors.indigo.shade50;
-        fg = Colors.indigo.shade700;
-        icon = Icons.call_merge;
+        bg = const Color(0xFFE8EAF6);
+        fg = const Color(0xFF283593);
+        symbol = '⑂';
         text = 'Resolved';
         break;
     }
@@ -204,7 +179,14 @@ class EntitySyncChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: fg),
+          Text(
+            symbol,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: fg,
+            ),
+          ),
           const SizedBox(width: 4),
           Text(
             text,
@@ -218,4 +200,65 @@ class EntitySyncChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SpinningIndicator extends StatefulWidget {
+  final Color color;
+  final double size;
+
+  const _SpinningIndicator({required this.color, required this.size});
+
+  @override
+  State<_SpinningIndicator> createState() => _SpinningIndicatorState();
+}
+
+class _SpinningIndicatorState extends State<_SpinningIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 1),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _controller.value * 2 * math.pi,
+          child: CustomPaint(
+            size: Size(widget.size, widget.size),
+            painter: _ArcPainter(widget.color),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ArcPainter extends CustomPainter {
+  final Color color;
+  _ArcPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawArc(rect, 0, 4.5, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArcPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

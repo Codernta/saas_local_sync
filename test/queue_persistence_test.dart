@@ -20,7 +20,9 @@ void main() {
   });
 
   group('FileJsonQueueStorage - Real Disk Persistence & Crash Recovery', () {
-    test('persists queue to disk and recovers all operations after simulated restart', () async {
+    test(
+        'persists queue to disk and recovers all operations after simulated restart',
+        () async {
       // 1. App Session 1: Create storage and enqueue operations
       final storageSession1 = FileJsonQueueStorage(file: queueFile);
       final managerSession1 = SyncQueueManager(storage: storageSession1);
@@ -67,14 +69,17 @@ void main() {
       await managerSession2.init();
 
       // Verify operations are completely recovered
-      final pendingOps = await managerSession2.getOperationsForTenant('workspace_a');
+      final pendingOps =
+          await managerSession2.getOperationsForTenant('workspace_a');
       expect(pendingOps.length, 2);
 
-      final recoveredOp1 = pendingOps.firstWhere((o) => o.id == 'op_session1_1');
+      final recoveredOp1 =
+          pendingOps.firstWhere((o) => o.id == 'op_session1_1');
       expect(recoveredOp1.payload?['name'], 'Project 1');
       expect(recoveredOp1.status, SyncOperationStatus.pending);
 
-      final recoveredOp2 = pendingOps.firstWhere((o) => o.id == 'op_session1_2');
+      final recoveredOp2 =
+          pendingOps.firstWhere((o) => o.id == 'op_session1_2');
       expect(recoveredOp2.payload?['name'], 'Project 2');
       // In-flight operation at crash time MUST safely reset to pending
       expect(recoveredOp2.status, SyncOperationStatus.pending);
@@ -82,7 +87,8 @@ void main() {
       // 4. Mark one completed and verify disk updates
       await managerSession2.markCompleted('op_session1_1');
 
-      final remaining = await managerSession2.getOperationsForTenant('workspace_a');
+      final remaining =
+          await managerSession2.getOperationsForTenant('workspace_a');
       expect(remaining.length, 1);
       expect(remaining.first.id, 'op_session1_2');
 
@@ -104,7 +110,8 @@ void main() {
       );
       await storeSession1.init();
 
-      await storeSession1.put('key_1', {'title': 'Persistent Title', 'count': 42});
+      await storeSession1
+          .put('key_1', {'title': 'Persistent Title', 'count': 42});
       await storeSession1.dispose();
 
       // Verify file exists

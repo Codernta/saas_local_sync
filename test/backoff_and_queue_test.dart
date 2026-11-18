@@ -10,7 +10,8 @@ void main() {
       expect(delay, Duration.zero);
     });
 
-    test('calculates deterministic exponential delay when jitterFactor is 0.0', () {
+    test('calculates deterministic exponential delay when jitterFactor is 0.0',
+        () {
       const calc = BackoffCalculator(
         baseDelay: Duration(seconds: 1),
         multiplier: 2.0,
@@ -34,7 +35,9 @@ void main() {
       expect(calc.calculateBackoff(7), const Duration(seconds: 32));
     });
 
-    test('jitter keeps delay strictly within [delay*(1-jitter), delay*(1+jitter)]', () {
+    test(
+        'jitter keeps delay strictly within [delay*(1-jitter), delay*(1+jitter)]',
+        () {
       const calc = BackoffCalculator(
         baseDelay: Duration(seconds: 10),
         multiplier: 2.0,
@@ -121,7 +124,9 @@ void main() {
       expect(readyTenantB[0].id, 'op_3');
     });
 
-    test('failing an operation increments retryCount and computes nextAttemptAt', () async {
+    test(
+        'failing an operation increments retryCount and computes nextAttemptAt',
+        () async {
       final op = SyncOperation(
         id: 'op_retry',
         tenantId: 'tenant_a',
@@ -151,7 +156,8 @@ void main() {
       expect(failedOp.isReadyForAttempt(afterTime), isTrue);
     });
 
-    test('transitions to deadLetter when retryCount exceeds maxRetries', () async {
+    test('transitions to deadLetter when retryCount exceeds maxRetries',
+        () async {
       final op = SyncOperation(
         id: 'op_dead',
         tenantId: 'tenant_a',

@@ -142,14 +142,16 @@ class _LastWriteWinsResolver<T> extends ConflictResolver<T> {
         resolvedEntity: context.localEntity,
         strategyUsed: ConflictStrategy.lastWriteWins,
         needsRemotePush: true,
-        details: 'Local entity won because localTimestamp (${context.localTimestamp}) > remoteTimestamp (${context.remoteTimestamp}).',
+        details:
+            'Local entity won because localTimestamp (${context.localTimestamp}) > remoteTimestamp (${context.remoteTimestamp}).',
       );
     } else if (context.isRemoteNewer) {
       return ConflictResolution<T>(
         resolvedEntity: context.remoteEntity,
         strategyUsed: ConflictStrategy.lastWriteWins,
         needsRemotePush: false,
-        details: 'Remote entity won because remoteTimestamp (${context.remoteTimestamp}) > localTimestamp (${context.localTimestamp}).',
+        details:
+            'Remote entity won because remoteTimestamp (${context.remoteTimestamp}) > localTimestamp (${context.localTimestamp}).',
       );
     } else {
       // Tie breaker
@@ -158,14 +160,16 @@ class _LastWriteWinsResolver<T> extends ConflictResolver<T> {
           resolvedEntity: context.localEntity,
           strategyUsed: ConflictStrategy.lastWriteWins,
           needsRemotePush: true,
-          details: 'Timestamp tie (${context.localTimestamp}): Local chosen by tieBreaker.',
+          details:
+              'Timestamp tie (${context.localTimestamp}): Local chosen by tieBreaker.',
         );
       } else {
         return ConflictResolution<T>(
           resolvedEntity: context.remoteEntity,
           strategyUsed: ConflictStrategy.lastWriteWins,
           needsRemotePush: false,
-          details: 'Timestamp tie (${context.localTimestamp}): Remote chosen by tieBreaker.',
+          details:
+              'Timestamp tie (${context.localTimestamp}): Remote chosen by tieBreaker.',
         );
       }
     }
@@ -195,7 +199,8 @@ class _ClientAuthoritativeResolver<T> extends ConflictResolver<T> {
       resolvedEntity: context.localEntity,
       strategyUsed: ConflictStrategy.clientAuthoritative,
       needsRemotePush: true,
-      details: 'Client is authoritative: persisting local edits and queuing server push.',
+      details:
+          'Client is authoritative: persisting local edits and queuing server push.',
     );
   }
 }

@@ -102,17 +102,20 @@ class SyncOperation {
   void validateSecurity({int maxPayloadBytes = 5 * 1024 * 1024}) {
     ScopedKey.validateTenantId(tenantId);
     if (id.isEmpty || id.contains('\x00')) {
-      throw TenantSecurityException('Operation ID is invalid or contains null bytes');
+      throw TenantSecurityException(
+          'Operation ID is invalid or contains null bytes');
     }
     if (endpoint.isEmpty || endpoint.contains('\x00')) {
-      throw TenantSecurityException('Endpoint cannot be empty or contain null bytes');
+      throw TenantSecurityException(
+          'Endpoint cannot be empty or contain null bytes');
     }
 
     final lowerEndpoint = endpoint.toLowerCase().trim();
     if (lowerEndpoint.startsWith('javascript:') ||
         lowerEndpoint.startsWith('data:') ||
         lowerEndpoint.startsWith('file:')) {
-      throw TenantSecurityException('Endpoint uses disallowed protocol: $endpoint', endpoint);
+      throw TenantSecurityException(
+          'Endpoint uses disallowed protocol: $endpoint', endpoint);
     }
 
     if (payload != null) {
@@ -196,8 +199,8 @@ class SyncOperation {
       entityId: json['entityId'] as String? ?? '',
       operationType: SyncOperationType.fromJson(
           json['operationType'] as String? ?? 'update'),
-      status: SyncOperationStatus.fromJson(
-          json['status'] as String? ?? 'pending'),
+      status:
+          SyncOperationStatus.fromJson(json['status'] as String? ?? 'pending'),
       lastAttemptAt: json['lastAttemptAt'] != null
           ? DateTime.parse(json['lastAttemptAt'] as String)
           : null,
@@ -230,11 +233,19 @@ class SyncOperation {
 ///
 /// Prevents thundering herds by dispersing retry intervals across nodes.
 class BackoffCalculator {
+  /// The initial backoff delay duration applied on the first retry attempt.
   final Duration baseDelay;
+
+  /// The ceiling duration capping the maximum backoff interval.
   final Duration maxDelay;
+
+  /// The rate of exponential expansion applied across consecutive retries.
   final double multiplier;
+
+  /// The jitter factor scaling the randomized window around the base delay.
   final double jitterFactor;
 
+  /// Creates a [BackoffCalculator] with customizable exponential backoff and jitter parameters.
   const BackoffCalculator({
     this.baseDelay = const Duration(seconds: 1),
     this.maxDelay = const Duration(seconds: 60),
@@ -255,8 +266,9 @@ class BackoffCalculator {
 
     // Exponential delay in milliseconds: base * (multiplier ^ (retryCount - 1))
     final expMultiplier = pow(multiplier, retryCount - 1).toDouble();
-    final rawDelayMs =
-        (baseDelay.inMilliseconds * expMultiplier).clamp(0, maxDelay.inMilliseconds).toDouble();
+    final rawDelayMs = (baseDelay.inMilliseconds * expMultiplier)
+        .clamp(0, maxDelay.inMilliseconds)
+        .toDouble();
 
     if (jitterFactor == 0.0) {
       return Duration(milliseconds: rawDelayMs.round());
@@ -332,9 +344,8 @@ class InMemoryQueueStorage implements SyncQueueStorage {
 
   @override
   Future<List<SyncOperation>> getAllForTenant(String tenantId) async {
-    final list =
-        _storage.values.where((op) => op.tenantId == tenantId).toList()
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final list = _storage.values.where((op) => op.tenantId == tenantId).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return list;
   }
 
@@ -376,8 +387,7 @@ class FileJsonQueueStorage implements SyncQueueStorage {
             final op = SyncOperation.fromJson(item as Map<String, dynamic>);
             // If the app crashed while an op was inFlight, reset it to pending
             if (op.status == SyncOperationStatus.inFlight) {
-              _cache[op.id] =
-                  op.copyWith(status: SyncOperationStatus.pending);
+              _cache[op.id] = op.copyWith(status: SyncOperationStatus.pending);
             } else {
               _cache[op.id] = op;
             }
@@ -447,9 +457,8 @@ class FileJsonQueueStorage implements SyncQueueStorage {
   @override
   Future<List<SyncOperation>> getAllForTenant(String tenantId) async {
     _ensureInitialized();
-    final list =
-        _cache.values.where((op) => op.tenantId == tenantId).toList()
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final list = _cache.values.where((op) => op.tenantId == tenantId).toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return list;
   }
 
@@ -584,7 +593,8 @@ class SyncQueueManager {
     Random? random,
   }) async {
     final nextRetryCount = operation.retryCount + 1;
-    final hasExceededRetries = isPermanent || nextRetryCount >= operation.maxRetries;
+    final hasExceededRetries =
+        isPermanent || nextRetryCount >= operation.maxRetries;
 
     if (hasExceededRetries) {
       final deadLetterOp = operation.copyWith(
@@ -599,7 +609,8 @@ class SyncQueueManager {
       return deadLetterOp;
     }
 
-    final delay = backoffCalculator.calculateBackoff(nextRetryCount, random: random);
+    final delay =
+        backoffCalculator.calculateBackoff(nextRetryCount, random: random);
     final nextAttemptAt = DateTime.now().toUtc().add(delay);
 
     final failedOp = operation.copyWith(

@@ -17,8 +17,7 @@ abstract class ConnectivityMonitor {
 /// developer offline simulation toggles, and custom health-check polling.
 class PluggableConnectivityMonitor implements ConnectivityMonitor {
   bool _isOnline;
-  final StreamController<bool> _controller =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> _controller = StreamController<bool>.broadcast();
 
   PluggableConnectivityMonitor({bool initialOnline = true})
       : _isOnline = initialOnline;
@@ -45,8 +44,7 @@ class PluggableConnectivityMonitor implements ConnectivityMonitor {
 /// Production [ConnectivityMonitor] implementation leveraging the `connectivity_plus` plugin.
 class FlutterConnectivityMonitor implements ConnectivityMonitor {
   final Connectivity _connectivity;
-  final StreamController<bool> _controller =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> _controller = StreamController<bool>.broadcast();
   StreamSubscription<List<ConnectivityResult>>? _subscription;
   bool _lastStatus = true;
 

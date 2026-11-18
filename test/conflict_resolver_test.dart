@@ -6,8 +6,16 @@ void main() {
     final resolver = ConflictResolver<Map<String, dynamic>>.lastWriteWins();
 
     test('picks local when localTimestamp > remoteTimestamp', () {
-      final local = {'id': '1', 'title': 'Local Edit', 'tags': ['urgent']};
-      final remote = {'id': '1', 'title': 'Remote Edit', 'tags': ['later']};
+      final local = {
+        'id': '1',
+        'title': 'Local Edit',
+        'tags': ['urgent']
+      };
+      final remote = {
+        'id': '1',
+        'title': 'Remote Edit',
+        'tags': ['later']
+      };
 
       final context = ConflictContext<Map<String, dynamic>>(
         entityId: '1',
@@ -59,8 +67,10 @@ void main() {
       expect(resolution.needsRemotePush, isFalse);
     });
 
-    test('resolves tie using clientAuthoritative tieBreaker when configured', () {
-      final clientTieResolver = ConflictResolver<Map<String, dynamic>>.lastWriteWins(
+    test('resolves tie using clientAuthoritative tieBreaker when configured',
+        () {
+      final clientTieResolver =
+          ConflictResolver<Map<String, dynamic>>.lastWriteWins(
         tieBreaker: ConflictStrategy.clientAuthoritative,
       );
       final timestamp = DateTime.utc(2026, 6, 1, 12, 0);
@@ -98,7 +108,8 @@ void main() {
       expect(resolution.needsRemotePush, isFalse);
     });
 
-    test('Client authoritative always accepts local state and requests push', () {
+    test('Client authoritative always accepts local state and requests push',
+        () {
       final resolver =
           ConflictResolver<Map<String, dynamic>>.clientAuthoritative();
       final context = ConflictContext<Map<String, dynamic>>(
@@ -119,7 +130,8 @@ void main() {
 
   group('ConflictResolver - Custom Merge', () {
     test('merges local and remote fields with custom business logic', () {
-      final customResolver = ConflictResolver<Map<String, dynamic>>.custom((context) {
+      final customResolver =
+          ConflictResolver<Map<String, dynamic>>.custom((context) {
         final local = context.localEntity;
         final remote = context.remoteEntity;
 
@@ -133,7 +145,8 @@ void main() {
             ...List<String>.from(local['tags'] as List? ?? []),
             ...List<String>.from(remote['tags'] as List? ?? []),
           }.toList(),
-          'completed': local['completed'] == true || remote['completed'] == true,
+          'completed':
+              local['completed'] == true || remote['completed'] == true,
         };
 
         return ConflictResolution<Map<String, dynamic>>(

@@ -1,6 +1,6 @@
 name: saas_local_sync
-description: "Production-ready, offline-first multi-tenant synchronization engine for Flutter and Dart. Features strict logical tenant isolation, optimistic UI queue with exponential backoff and jitter, persistent disk queues, and pluggable conflict resolution."
-version: 1.0.1
+description: "Offline-first, multi-tenant sync engine for Flutter & Dart. Enables optimistic UI mutations, backoff retry queues, and pluggable conflict resolution."
+version: 1.0.2
 homepage: https://github.com/Codernta/saas_local_sync
 repository: https://github.com/Codernta/saas_local_sync
 issue_tracker: https://github.com/Codernta/saas_local_sync/issues

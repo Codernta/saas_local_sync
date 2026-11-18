@@ -132,7 +132,8 @@ void main() {
       await rawStore.dispose();
     });
 
-    test('optimistic offline mutation followed by online background flush', () async {
+    test('optimistic offline mutation followed by online background flush',
+        () async {
       // 1. Initially offline
       expect(engine.currentState.isOnline, isFalse);
       expect(engine.currentStatus, SyncStatus.offline);
@@ -164,7 +165,8 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       // 4. Verify queue was automatically flushed
-      final pendingAfterSync = await queueManager.getPendingCount('tenant_alpha');
+      final pendingAfterSync =
+          await queueManager.getPendingCount('tenant_alpha');
       expect(pendingAfterSync, 0);
 
       // Verify remote mock server now holds the record
@@ -178,7 +180,8 @@ void main() {
       expect(engine.currentStatus, SyncStatus.synced);
     });
 
-    test('handles 409 conflict during push and resolves via ConflictResolver', () async {
+    test('handles 409 conflict during push and resolves via ConflictResolver',
+        () async {
       connectivity.setOnline(true);
       await Future.delayed(const Duration(milliseconds: 20));
 
@@ -193,7 +196,8 @@ void main() {
       await engine.sync();
 
       // Verify initial state is synced
-      expect((await taskRepo.findById('task_conflict'))?.syncState, SyncState.synced);
+      expect((await taskRepo.findById('task_conflict'))?.syncState,
+          SyncState.synced);
 
       // 2. Arm simulated conflict on transport with newer remote data
       transport.injectServerChange('tenant_alpha', 'task_conflict', {
@@ -229,7 +233,8 @@ void main() {
       expect(await queueManager.getPendingCount('tenant_alpha'), 0);
     });
 
-    test('switching tenant isolates queue flushing strictly to active tenant', () async {
+    test('switching tenant isolates queue flushing strictly to active tenant',
+        () async {
       connectivity.setOnline(false);
 
       // Add task for tenant_alpha

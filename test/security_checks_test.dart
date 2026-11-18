@@ -44,9 +44,12 @@ void main() {
     });
 
     test('accepts compliant, safe tenant IDs and keys', () {
-      expect(() => ScopedKey.validateTenantId('acme-corp-123'), returnsNormally);
-      expect(() => ScopedKey.validateTenantId('workspace_beta_99'), returnsNormally);
-      expect(() => ScopedKey.validateTenantId('user.name@org.com'), returnsNormally);
+      expect(
+          () => ScopedKey.validateTenantId('acme-corp-123'), returnsNormally);
+      expect(() => ScopedKey.validateTenantId('workspace_beta_99'),
+          returnsNormally);
+      expect(() => ScopedKey.validateTenantId('user.name@org.com'),
+          returnsNormally);
       expect(() => ScopedKey.validateKey('task_12345'), returnsNormally);
       expect(() => ScopedKey.validateKey('settings-v2'), returnsNormally);
     });
@@ -103,7 +106,9 @@ void main() {
 
     test('rejects payloads exceeding max security payload threshold', () {
       final hugeMap = <String, dynamic>{
-        'blob': List.filled(5000, 'large-string-payload-fragment-exceeding-limit').join(),
+        'blob':
+            List.filled(5000, 'large-string-payload-fragment-exceeding-limit')
+                .join(),
       };
 
       final op = SyncOperation(
@@ -123,7 +128,8 @@ void main() {
   });
 
   group('TenantSecurityChecker Isolation Audit', () {
-    test('auditStoreIsolation verifies strict separation between two tenants', () async {
+    test('auditStoreIsolation verifies strict separation between two tenants',
+        () async {
       final rawStore = InMemoryStoreAdapter<String>();
       await rawStore.init();
 
@@ -133,7 +139,8 @@ void main() {
         scope: scope,
       );
 
-      final isIsolated = await TenantSecurityChecker.auditStoreIsolation<String>(
+      final isIsolated =
+          await TenantSecurityChecker.auditStoreIsolation<String>(
         store: scopedStore,
         tenantA: 'tenant_alpha',
         tenantB: 'tenant_beta',

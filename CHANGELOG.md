@@ -1,3 +1,11 @@
+## 1.0.2
+
+* Updated package description to meet Pana's length requirements (between 60 and 180 characters).
+* Standardized OSI-approved BSD-3-Clause license file format.
+* Decoupled `flutter_helpers.dart` to rely exclusively on `package:flutter/widgets.dart` to prevent future deprecation warnings on Flutter 3.47+.
+* Enhanced documentation comments for `BackoffCalculator` and public APIs.
+* Enforced full code formatting across all libraries and tests via `dart format`.
+
 ## 1.0.1
 
 * Added official package banner/poster artwork to documentation.
