@@ -28,17 +28,81 @@ class TenantMismatchException implements Exception {
   String toString() => 'TenantMismatchException: $message';
 }
 
+/// Exception thrown when a tenant identifier or storage key fails security validation checks.
+class TenantSecurityException extends ArgumentError {
+  final String securityMessage;
+
+  TenantSecurityException(this.securityMessage, [String? invalidVal])
+      : super.value(invalidVal, 'securityCheck', securityMessage);
+
+  @override
+  String toString() =>
+      'TenantSecurityException: $securityMessage${invalidValue != null ? ' (Invalid value: "$invalidValue")' : ''}';
+}
+
 /// Helper utility for generating and parsing tenant-scoped keys.
 ///
-/// Prevents cross-tenant collision and data leakage in underlying storage.
+/// Prevents cross-tenant collision, injection attacks, and data leakage in underlying storage.
 abstract final class ScopedKey {
   static const String prefixDelimiter = '__ts__';
 
-  /// Formats a key with the given [tenantId] namespace.
-  static String format(String tenantId, String key) {
+  /// Regular expression restricting tenant identifiers to safe characters.
+  /// Disallows path traversal, null bytes, control characters, and delimiter strings.
+  static final RegExp validTenantIdPattern = RegExp(r'^[a-zA-Z0-9_\-\.@]+$');
+
+  /// Validates [tenantId] against injection, directory traversal, and delimiter collision attacks.
+  static void validateTenantId(String tenantId) {
     if (tenantId.isEmpty) {
-      throw ArgumentError.value(tenantId, 'tenantId', 'Tenant ID cannot be empty');
+      throw TenantSecurityException('Tenant ID cannot be empty');
     }
+    if (tenantId.contains(prefixDelimiter)) {
+      throw TenantSecurityException(
+        'Security violation: Tenant ID cannot contain prefix delimiter "$prefixDelimiter"',
+        tenantId,
+      );
+    }
+    if (tenantId.contains('..') ||
+        tenantId.contains('/') ||
+        tenantId.contains('\\') ||
+        tenantId.contains('\x00')) {
+      throw TenantSecurityException(
+        'Security violation: Tenant ID cannot contain path traversal characters or null bytes',
+        tenantId,
+      );
+    }
+    if (!validTenantIdPattern.hasMatch(tenantId)) {
+      throw TenantSecurityException(
+        'Security violation: Tenant ID contains illegal characters. Only alphanumeric, -, _, ., @ are allowed',
+        tenantId,
+      );
+    }
+  }
+
+  /// Validates [key] to prevent delimiter collision and traversal attacks.
+  static void validateKey(String key) {
+    if (key.isEmpty) {
+      throw TenantSecurityException('Storage key cannot be empty');
+    }
+    if (key.contains(prefixDelimiter)) {
+      throw TenantSecurityException(
+        'Security violation: Storage key cannot contain delimiter "$prefixDelimiter"',
+        key,
+      );
+    }
+    if (key.contains('\x00')) {
+      throw TenantSecurityException(
+        'Security violation: Storage key cannot contain null bytes',
+        key,
+      );
+    }
+  }
+
+  /// Formats a key with the given [tenantId] namespace.
+  ///
+  /// Enforces security validation on both [tenantId] and [key] before generating the scoped key.
+  static String format(String tenantId, String key) {
+    validateTenantId(tenantId);
+    validateKey(key);
     return 't_$tenantId$prefixDelimiter$key';
   }
 
@@ -67,6 +131,74 @@ abstract final class ScopedKey {
     final delimIndex = scopedKey.indexOf(prefixDelimiter);
     if (delimIndex == -1 || delimIndex <= 2) return null;
     return scopedKey.substring(2, delimIndex);
+  }
+}
+
+/// Utility class for auditing multi-tenant isolation and security policies at runtime.
+abstract final class TenantSecurityChecker {
+  /// Verifies that [tenantId] complies with all security policies.
+  static bool isTenantIdSafe(String tenantId) {
+    try {
+      ScopedKey.validateTenantId(tenantId);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Verifies that [key] complies with all security policies.
+  static bool isKeySafe(String key) {
+    try {
+      ScopedKey.validateKey(key);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Runs an automated isolation audit on [store] verifying that operations
+  /// performed under one tenant do not appear in or affect another tenant.
+  static Future<bool> auditStoreIsolation<T>({
+    required ScopedStoreWrapper<T> store,
+    required String tenantA,
+    required String tenantB,
+    required T testValueA,
+    required T testValueB,
+  }) async {
+    final scope = store.scope;
+    final initialTenant = scope.activeTenantIdOrNull;
+
+    try {
+      // 1. Write in tenant A
+      scope.setTenant(tenantA);
+      await store.put('__security_audit_key__', testValueA);
+
+      // 2. Switch to tenant B and verify absence
+      scope.setTenant(tenantB);
+      final readFromB = await store.get('__security_audit_key__');
+      if (readFromB != null) return false;
+
+      // 3. Write in tenant B
+      await store.put('__security_audit_key__', testValueB);
+
+      // 4. Switch back to tenant A and verify integrity
+      scope.setTenant(tenantA);
+      final readFromA = await store.get('__security_audit_key__');
+      if (readFromA != testValueA) return false;
+
+      // Clean up
+      await store.delete('__security_audit_key__');
+      scope.setTenant(tenantB);
+      await store.delete('__security_audit_key__');
+
+      return true;
+    } finally {
+      if (initialTenant != null) {
+        scope.setTenant(initialTenant);
+      } else {
+        scope.clearTenant();
+      }
+    }
   }
 }
 
@@ -108,11 +240,12 @@ class TenantScope {
   Stream<String?> get onTenantChanged => _tenantChangeController.stream;
 
   /// Sets the active tenant ID and notifies listeners if changed.
+  ///
+  /// Enforces security validation on [tenantId] against delimiter injection,
+  /// path traversal, and illegal characters.
   void setTenant(String tenantId) {
     final trimmed = tenantId.trim();
-    if (trimmed.isEmpty) {
-      throw ArgumentError.value(tenantId, 'tenantId', 'Tenant ID cannot be empty or blank');
-    }
+    ScopedKey.validateTenantId(trimmed);
     if (_activeTenantId == trimmed) return;
 
     _activeTenantId = trimmed;

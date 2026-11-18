@@ -1,3 +1,13 @@
+## 1.0.1
+
+* Added official package banner/poster artwork to documentation.
+* **Security Checks & Hardening**:
+  - Added `TenantSecurityException` and strict validation of tenant identifiers and storage keys.
+  - Implemented delimiter collision and path traversal protection in `ScopedKey.validateTenantId` and `ScopedKey.validateKey`.
+  - Added `SyncOperation.validateSecurity()` to block malicious URI schemes (e.g. `javascript:`, `file:`, `data:`) and protect against oversized payload DoS attacks.
+  - Added runtime tenant isolation auditor `TenantSecurityChecker.auditStoreIsolation`.
+  - Added dedicated security unit test suite `test/security_checks_test.dart`.
+
 ## 1.0.0
 
 * Initial release of `saas_local_sync`.

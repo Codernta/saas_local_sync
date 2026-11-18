@@ -1,6 +1,10 @@
 # saas_local_sync
 
-[![pub package](https://img.shields.io/badge/pub-v1.0.0-blue.svg)](https://pub.dev/packages/saas_local_sync)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Codernta/saas_local_sync/main/doc/poster.jpg" alt="saas_local_sync — Offline-First Multi-Tenant Sync Engine for Flutter" width="100%" />
+</p>
+
+[![pub package](https://img.shields.io/badge/pub-v1.0.1-blue.svg)](https://pub.dev/packages/saas_local_sync)
 [![Flutter](https://img.shields.io/badge/flutter-3.0%2B-02569B.svg?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/dart-3.0%2B-0175C2.svg?logo=dart)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -45,9 +49,45 @@ flowchart TD
 - **Pure-Dart Core**: Synchronization logic, backoff calculation, queue persistence, and conflict merging are 100% decoupled from Flutter UI widgets. Runs seamlessly on Flutter Mobile, Desktop, Web, and Dart server-side CLI.
 - **Strong Generics & Pluggable Storage**: Plug in Drift, Hive, Isar, SQLite, or the built-in `FileJsonStoreAdapter` via `LocalStoreAdapter<T>`.
 - **Zero Data Leakage**: Data from Tenant A never surfaces when querying Tenant B, even after switching workspaces or clearing local state.
+- **Security Hardened**: Built-in protection against tenant ID spoofing, delimiter collision (`__ts__`), directory traversal (`../`), null byte injections, and dangerous endpoint schemes.
 - **Crash Recovery**: Queues are disk-backed. In-flight operations reset gracefully to `pending` upon app relaunch.
 - **Exponential Backoff with Full Jitter**: Prevents "thundering herds" by dispersing retry attempts with a randomized jitter factor.
 - **Loosely-Coupled Flutter Helpers**: Includes `SyncEngineNotifier`, `SyncStatusBadge`, and `EntitySyncChip` for rapid UI development.
+
+---
+
+## 🛡️ Security & Multi-Tenant Isolation Checks
+
+Multi-tenant synchronization demands strict security boundaries to prevent cross-tenant data leakage or privilege escalation:
+
+### 1. Delimiter Collision & Injection Defense
+Underlying storage keys are formatted as `t_{tenantId}__ts__{key}`. If an unvalidated tenant identifier contains the prefix delimiter (`__ts__`), an attacker could craft a tenant ID that overrides or accesses another tenant's keys.
+- `ScopedKey.validateTenantId(tenantId)` rejects any tenant ID containing `__ts__`.
+- `ScopedKey.validateKey(key)` rejects storage keys containing `__ts__`.
+
+### 2. Directory Traversal & Null Byte Protection
+When using file-based storage or SQLite databases with tenant namespaces:
+- Path traversal sequences (`..`, `/`, `\`) in tenant identifiers are strictly forbidden.
+- Null byte characters (`\x00`) are blocked across all tenant identifiers, storage keys, and sync operation identifiers.
+- Tenant IDs must conform to the safe character set regex `^[a-zA-Z0-9_\-\.@]+$`.
+
+### 3. Protocol & Endpoint Protection
+- `SyncOperation.validateSecurity()` inspects mutation endpoints and automatically rejects dangerous URI schemes such as `javascript:`, `file:`, or `data:`.
+- Configurable `maxPayloadBytes` limits prevent memory exhaustion or disk flooding attacks.
+
+### 4. Automated Runtime Isolation Auditing
+Developers can audit their local store adapters using the built-in `TenantSecurityChecker`:
+
+```dart
+final isIsolated = await TenantSecurityChecker.auditStoreIsolation<TaskItem>(
+  store: scopedStore,
+  tenantA: 'tenant_acme',
+  tenantB: 'tenant_globex',
+  testValueA: taskA,
+  testValueB: taskB,
+);
+assert(isIsolated, 'Tenant isolation violation detected!');
+```
 
 ---
 
@@ -57,7 +97,7 @@ Add `saas_local_sync` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  saas_local_sync: ^1.0.0
+  saas_local_sync: ^1.0.1
 ```
 
 Then run:
@@ -337,13 +377,14 @@ EntitySyncChip(syncState: task.syncState)
 
 ## 🧪 Running Unit Tests
 
-A comprehensive unit test suite covering tenant isolation, exponential backoff, conflict resolution, and disk queue crash recovery is included:
+A comprehensive unit test suite covering tenant isolation, exponential backoff, conflict resolution, queue crash recovery, and security validations is included:
 
 ```bash
 flutter test
 ```
 
 Test breakdown:
+- `test/security_checks_test.dart`: Rejection of delimiter collision, path traversal, null bytes, unsafe schemes, and payload size bounds.
 - `test/tenant_scope_test.dart`: Zero-leakage multi-tenant verification, key prefixing, scoped clear.
 - `test/backoff_and_queue_test.dart`: Exponential growth, jitter distribution bounds, dead-letter limits.
 - `test/conflict_resolver_test.dart`: LWW, server/client authoritative, and custom merge logic.

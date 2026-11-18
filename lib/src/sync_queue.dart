@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
+import 'tenant_scope.dart';
 
 /// The type of mutation operation being performed.
 enum SyncOperationType {
@@ -91,6 +92,38 @@ class SyncOperation {
   /// Whether this operation has exceeded its retry budget and is dead-lettered.
   bool get isDeadLetter =>
       status == SyncOperationStatus.deadLetter || retryCount >= maxRetries;
+
+  /// Performs security and sanity checks on this operation.
+  ///
+  /// Enforces tenant ID security, verifies endpoint safety (blocking disallowed schemes like `javascript:` or `file:`),
+  /// and protects against memory exhaustion via [maxPayloadBytes].
+  ///
+  /// Throws [TenantSecurityException] if validation fails.
+  void validateSecurity({int maxPayloadBytes = 5 * 1024 * 1024}) {
+    ScopedKey.validateTenantId(tenantId);
+    if (id.isEmpty || id.contains('\x00')) {
+      throw TenantSecurityException('Operation ID is invalid or contains null bytes');
+    }
+    if (endpoint.isEmpty || endpoint.contains('\x00')) {
+      throw TenantSecurityException('Endpoint cannot be empty or contain null bytes');
+    }
+
+    final lowerEndpoint = endpoint.toLowerCase().trim();
+    if (lowerEndpoint.startsWith('javascript:') ||
+        lowerEndpoint.startsWith('data:') ||
+        lowerEndpoint.startsWith('file:')) {
+      throw TenantSecurityException('Endpoint uses disallowed protocol: $endpoint', endpoint);
+    }
+
+    if (payload != null) {
+      final jsonStr = jsonEncode(payload);
+      if (jsonStr.length > maxPayloadBytes) {
+        throw TenantSecurityException(
+          'Payload size exceeds maximum allowed security limit ($maxPayloadBytes bytes)',
+        );
+      }
+    }
+  }
 
   SyncOperation copyWith({
     String? id,
@@ -493,8 +526,9 @@ class SyncQueueManager {
     await storage.init();
   }
 
-  /// Enqueues a new sync mutation.
+  /// Enqueues a new sync mutation after running security validation.
   Future<void> enqueue(SyncOperation operation) async {
+    operation.validateSecurity();
     await storage.save(operation);
     _queueChangeController.add(operation);
   }

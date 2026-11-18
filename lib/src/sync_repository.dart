@@ -83,6 +83,7 @@ class SyncRepository<T extends SyncEntity, ID> {
   /// Immediately available in the UI with `syncState = pendingUpdate` or `pendingCreation`.
   Future<void> save(T entity) async {
     scope.ensureActiveTenant(entity.tenantId);
+    ScopedKey.validateKey(entity.id.toString());
 
     final existing = await store.get(entity.id.toString());
     final isNew = existing == null;
@@ -116,6 +117,7 @@ class SyncRepository<T extends SyncEntity, ID> {
   /// Marks the entity as deleted locally and enqueues a delete mutation.
   Future<void> delete(ID id) async {
     final key = id.toString();
+    ScopedKey.validateKey(key);
     final existing = await store.get(key);
     if (existing == null) return;
 
